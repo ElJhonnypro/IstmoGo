@@ -1,4 +1,3 @@
-// Process to get Token
 package userManagement
 
 import (
@@ -14,14 +13,17 @@ func LogIn(Identifier, Password string) (bool, string) {
 		return false, ""
 	}
 
-	tryHashPss, _ := bcrypt.GenerateFromPassword(
+	//fmt.Println(user)
+
+	try := bcrypt.CompareHashAndPassword(
+		[]byte(user.Password),
 		[]byte(Password),
-		bcrypt.DefaultCost,
 	)
 
-	if user.Password == string(tryHashPss) {
+	if try == nil {
 		token, err := utils.GenerateToken(user.ID)
 		if err != nil {
+
 			return false, ""
 		}
 		return true, token

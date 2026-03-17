@@ -1,6 +1,7 @@
 package UserRoutes
 
 import (
+	"API/routes/middlewares"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,10 +10,11 @@ import (
 func RegisterUserRoutes(router fiber.Router) {
 	authGroup := router.Group("/auth")
 	authGroup.Post("/register", RegisterUser)
+	authGroup.Post("/login", LogIn)
 
 	//Auth
 	if os.Getenv("mode") == "DEV" {
-		authGroup.Post("/me", getMe)
+		authGroup.Get("/me", middlewares.JWTVerify, getMe)
 	}
 
 }

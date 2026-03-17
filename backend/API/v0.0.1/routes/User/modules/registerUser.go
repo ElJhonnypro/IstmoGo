@@ -1,47 +1,115 @@
 package UserRoutes
 
 import (
-	"API/internal/userManagement"
+	carManagement "API/internal/carmanagement"
+	userManagement "API/internal/usermanagement"
+	"API/internal/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func RegisterUser(c *fiber.Ctx) error {
-	type Request struct {
-		Name      string  `json:"name"`
-		Phone     string  `json:"phone"`
-		Role      string  `json:"role"`
-		RID       *string `json:"rid"`
-		RIDPhoto  *string `json:"rid_photo"`
-		CarID     *string `json:"car_id"`
-		Email     string  `json:"email"`
-		Password  string  `json:"password"`
-		Location  string  `json:"location"`
-		Birthdate *string `json:"birthdate"`
-	}
-	var req Request
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	// Campos normales
+	name := c.FormValue("name")
+	phone := c.FormValue("phone")
+	role := c.FormValue("role")
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+	location := c.FormValue("location")
+	birthdate := c.FormValue("birthdate") // string
+
+	// not neccesary
+	rid := c.FormValue("rid")
+	carID := c.FormValue("carId")
+
+	// Validación básica
+	if name == "" || phone == "" || role == "" || email == "" || password == "" || location == "" || birthdate == "" {
+		return c.Status(400).JSON(fiber.Map{
 			"success": false,
-			"message": "Invalid request body",
+			"message": "Missing required fields",
 		})
 	}
-	result := userManagement.RegisterUser(
-		req.Name,
-		req.Phone,
-		req.Role,
-		req.RID,
-		req.RIDPhoto,
-		req.CarID,
-		req.Email,
-		req.Password,
-		req.Location,
-		req.Birthdate,
-	)
 
-	if result.Success == false {
-		return c.Status(fiber.StatusInternalServerError).JSON(result)
+	// =========================
+	// RID PHOTO (file)
+	// =========================
+	var ridPhotoPath *string = nil
+	if role == "uber" {
+		// Uber OBLIGATORIO
+		if rid == "" || carID == "" {
+			return c.Status(400).JSON(fiber.Map{
+				"success": false,
+				"message": "Missing required uber fields",
+			})
+		}
+
+		file, err := c.FormFile("photo")
+		if err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"success": false,
+				"message": "Photo is required",
+			})
+		}
+
+		photoPath, err := utils.SaveImage(c, file, "rid", "../data/uploads/")
+		if err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"success": false,
+				"message": "Invalid image",
+			})
+		}
+		ridPhotoPath = &photoPath
+
+		// Validar que el carro exista
+		if !carManagement.ValidIdCar(carID) {
+			return c.Status(400).JSON(fiber.Map{
+				"success": false,
+				"message": "Invalid car ID",
+			})
+		}
+
 	}
 
-	return c.Status(fiber.StatusOK).JSON(result)
+	// ❌ Prohibir admin
+	if role == "admin" {
+		return c.Status(403).JSON(fiber.Map{
+			"success": false,
+			"message": "Forbidden role",
+		})
+	}
+
+	// Convertir opcionales a punteros
+	var ridPtr *string = nil
+	if rid != "" {
+		ridPtr = &rid
+	}
+
+	var carIDPtr *string = nil
+	if carID != "" {
+		carIDPtr = &carID
+	}
+
+	var birthdatePtr *string = &birthdate
+
+	// =========================
+	// Registrar usuario
+	// =========================
+	result := userManagement.RegisterUser(
+		name,
+		phone,
+		role,
+		ridPtr,
+		ridPhotoPath,
+		carIDPtr,
+		email,
+		password,
+		location,
+		birthdatePtr,
+	)
+
+	if !result.Success {
+		return c.Status(500).JSON(result)
+	}
+
+	return c.Status(200).JSON(result)
 }

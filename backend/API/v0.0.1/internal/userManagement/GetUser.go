@@ -1,8 +1,8 @@
 package userManagement
 
 import (
-	"API/data"
-	userUseModels "API/internal/userManagement/models"
+	data "API/data"
+	userUseModels "API/internal/usermanagement/models"
 )
 
 func GetALLUsers(admin bool) (users []userUseModels.User, err error) {

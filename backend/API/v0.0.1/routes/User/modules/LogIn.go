@@ -2,7 +2,7 @@
 package UserRoutes
 
 import (
-	userManagement "API/internal/UserManagement"
+	userManagement "API/internal/usermanagement"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,7 +13,10 @@ func LogIn(c *fiber.Ctx) error {
 		Password   string `json:"password"`
 	}
 
+	//fmt.Println("RAW BODY:", string(c.Body()))
+
 	var req Request
+
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"logIn":   false,
@@ -24,9 +27,9 @@ func LogIn(c *fiber.Ctx) error {
 	logInResult, token := userManagement.LogIn(req.Identifier, req.Password)
 
 	if logInResult == false {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(401).JSON(fiber.Map{
 			"logIn":   false,
-			"message": "Internal server error.",
+			"message": "Wrong login.",
 		})
 	}
 
