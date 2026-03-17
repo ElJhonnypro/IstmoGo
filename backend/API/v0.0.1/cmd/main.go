@@ -1,6 +1,7 @@
 package main
 
 import (
+	"API/data"
 	"API/routes"
 
 	"github.com/joho/godotenv"
@@ -8,6 +9,9 @@ import (
 
 func main() {
 	godotenv.Load("../internal/.env")
-	routes.StartRoutes()
 
+	data.ConnectDB()
+	data.CreateTables(data.GetDB())
+
+	routes.StartRoutes()
 }

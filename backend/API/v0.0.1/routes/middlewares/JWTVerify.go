@@ -1,34 +1,63 @@
 package middlewares
 
 import (
+	userManagement "API/internal/usermanagement"
 	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func JWTVerify(c *fiber.Ctx) fiber.Handler {
-	// Placeholder for JWT verification logic
-	return func(c *fiber.Ctx) error {
+type CustomClaims struct {
+	UserID string `json:"userId"`
+	jwt.RegisteredClaims
+}
 
-		tokenStr := c.Get("Authorization")
-		if tokenStr == "" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing or invalid token",
-			})
-		}
-		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET")), nil
+func JWTVerify(c *fiber.Ctx) error {
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "Missing Authorization header",
 		})
-		if err != nil || !token.Valid {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Invalid token",
-			})
-		}
-
-		claims := token.Claims.(jwt.MapClaims)
-		c.Locals("userId", claims["userId"])
-
-		return c.Next()
 	}
+
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "Invalid Authorization format",
+		})
+	}
+
+	tokenStr := strings.TrimSpace(parts[1])
+
+	claims := &CustomClaims{}
+
+	token, err := jwt.ParseWithClaims(
+		tokenStr,
+		claims,
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET")), nil
+		},
+	)
+
+	if err != nil || !token.Valid {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "Invalid token",
+		})
+	}
+
+	if !token.Valid {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "Token not valid",
+		})
+	}
+
+	infoUserbyId, err := userManagement.GetUserByID(claims.UserID)
+	infoUserbyId.Password = ""
+
+	c.Locals("user", infoUserbyId)
+
+	return c.Next()
+
 }

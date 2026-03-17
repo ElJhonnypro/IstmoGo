@@ -10,3 +10,6 @@ dist/
 
 # Logs
 *.log
+# Uploads (imagenes de usuarios y carros)
+backend/API/v0.0.1/data/uploads/*
+!backend/API/v0.0.1/data/uploads/.gitkeep
