@@ -78,6 +78,13 @@ func RegisterUser(c *fiber.Ctx) error {
 		})
 	}
 
+	if role != "client" && role != "uber" {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid role",
+		})
+	}
+
 	// Convertir opcionales a punteros
 	var ridPtr *string = nil
 	if rid != "" {

@@ -9,6 +9,12 @@ import (
 func RegisterRoutes(router fiber.Router) {
 	ridegroup := router.Group("/rides")
 
-	ridegroup.Post("/request", middlewares.JWTVerify, RideRequest)
+	ridegroup.Post("/request", middlewares.JWTVerify, middlewares.RequireRole("client"), RideRequest)
+	ridegroup.Post("/accept", middlewares.JWTVerify, middlewares.RequireRole("uber"), middlewares.NoMultipleRide, AcceptRide)
+	ridegroup.Post("/start", middlewares.JWTVerify, middlewares.RequireRole("uber"), StartRide)
+	ridegroup.Post("/finish", middlewares.JWTVerify, middlewares.RequireRole("uber"), FinishRide)
+
+	ridegroup.Get("/getNearRides", middlewares.JWTVerify, middlewares.RequireRole("uber"), GetNearRides)
+	ridegroup.Get("/getMyRide", middlewares.JWTVerify, middlewares.RequireRole("client"), getMyRide)
 
 }

@@ -21,5 +21,5 @@ func StartRoutes() {
 	CarModules.RegisterCarRoutes(version)
 
 	// Start the server
-	app.Listen(":3000")
+	app.Listen(":2534")
 }
