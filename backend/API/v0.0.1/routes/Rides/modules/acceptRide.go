@@ -4,10 +4,10 @@ import (
 	rideManagement "API/internal/ridesmanagement"
 	userModels "API/internal/usermanagement/models"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func AcceptRide(c *fiber.Ctx) error {
+func AcceptRide(c fiber.Ctx) error {
 
 	User := c.Locals("user").(userModels.User)
 
@@ -16,7 +16,7 @@ func AcceptRide(c *fiber.Ctx) error {
 	}
 
 	var req Request
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})

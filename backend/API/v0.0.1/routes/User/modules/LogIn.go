@@ -4,10 +4,10 @@ package UserRoutes
 import (
 	userManagement "API/internal/usermanagement"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func LogIn(c *fiber.Ctx) error {
+func LogIn(c fiber.Ctx) error {
 	type Request struct {
 		Identifier string `json:"identifier"`
 		Password   string `json:"password"`
@@ -17,7 +17,7 @@ func LogIn(c *fiber.Ctx) error {
 
 	var req Request
 
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"logIn":   false,
 			"message": "Request is wrong.",

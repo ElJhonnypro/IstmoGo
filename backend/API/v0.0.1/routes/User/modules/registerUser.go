@@ -6,10 +6,10 @@ import (
 	"API/internal/utils"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func RegisterUser(c *fiber.Ctx) error {
+func RegisterUser(c fiber.Ctx) error {
 	// Campos normales
 	name := c.FormValue("name")
 	phone := c.FormValue("phone")

@@ -4,12 +4,12 @@ import (
 	carManagement "API/internal/carmanagement"
 	"API/internal/utils"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func RegisterCarRoutes(router fiber.Router) {
 	carGroup := router.Group("/car")
-	carGroup.Post("/register", func(c *fiber.Ctx) error {
+	carGroup.Post("/register", func(c fiber.Ctx) error {
 		// Recibir campos tipo form-data
 		plate := c.FormValue("plate")
 		model := c.FormValue("model")

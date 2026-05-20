@@ -3,11 +3,11 @@ package middlewares
 import (
 	userUseModels "API/internal/usermanagement/models"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func RequireRole(role string) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		user := c.Locals("user").(userUseModels.User)
 		println(user.Role)
 		if user.Role != role {

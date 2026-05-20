@@ -3,15 +3,15 @@ package RideRoutes
 import (
 	rideManagement "API/internal/ridesmanagement"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func FinishRide(c *fiber.Ctx) error {
+func FinishRide(c fiber.Ctx) error {
 	type Request struct {
 		RideID string `json:"ride_id"`
 	}
 	var req Request
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"error": "Invalid request body, " + req.RideID,
 		})

@@ -4,12 +4,12 @@ import (
 	"mime/multipart"
 	"path/filepath"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
 func SaveImage(
-	c *fiber.Ctx,
+	c fiber.Ctx,
 	file *multipart.FileHeader,
 	prefix string, // car | rid | user
 	basePath string, // ../data/uploads/

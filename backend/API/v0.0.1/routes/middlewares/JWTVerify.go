@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -14,7 +14,7 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-func JWTVerify(c *fiber.Ctx) error {
+func JWTVerify(c fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
 		return c.Status(401).JSON(fiber.Map{

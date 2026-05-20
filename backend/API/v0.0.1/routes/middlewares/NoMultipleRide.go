@@ -4,10 +4,10 @@ import (
 	"API/data"
 	userUseModels "API/internal/usermanagement/models"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func NoMultipleRide(c *fiber.Ctx) error {
+func NoMultipleRide(c fiber.Ctx) error {
 	user := c.Locals("user").(userUseModels.User)
 
 	if user.Role == "uber" {

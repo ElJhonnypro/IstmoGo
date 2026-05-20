@@ -3,7 +3,7 @@ package RideRoutes
 import (
 	"API/routes/middlewares"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func RegisterRoutes(router fiber.Router) {

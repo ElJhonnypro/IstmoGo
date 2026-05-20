@@ -3,10 +3,10 @@ package RideRoutes
 import (
 	rideManagement "API/internal/ridesmanagement"
 
-	Fiber "github.com/gofiber/fiber/v2"
+	Fiber "github.com/gofiber/fiber/v3"
 )
 
-func GetRides(c *Fiber.Ctx) error {
+func GetRides(c Fiber.Ctx) error {
 
 	AllRides, err := rideManagement.GetAllRides() // Aquí se podrían obtener los rides desde la base de datos
 	if err != nil {
@@ -21,14 +21,14 @@ func GetRides(c *Fiber.Ctx) error {
 	})
 }
 
-func GetNearRides(c *Fiber.Ctx) error {
+func GetNearRides(c Fiber.Ctx) error {
 	type Request struct {
 		Lat float64 `json:"lat"`
 		Lng float64 `json:"lng"`
 	}
 
 	var req Request
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		println(err.Error())
 		return c.Status(400).JSON(Fiber.Map{
 			"error": "Invalid request body",

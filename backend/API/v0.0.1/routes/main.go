@@ -5,12 +5,14 @@ import (
 	RideRoutes "API/routes/Rides/modules"
 	UserModules "API/routes/User/modules"
 
+	"github.com/gofiber/fiber/v3/middleware/static"
+
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 )
 
 func StartRoutes() {
@@ -28,7 +30,7 @@ func StartRoutes() {
 	// =========================
 	// Logger Middleware
 	// =========================
-	app.Use(func(c *fiber.Ctx) error {
+	app.Use(func(c fiber.Ctx) error {
 
 		start := time.Now()
 
@@ -58,15 +60,15 @@ func StartRoutes() {
 	// CORS
 	// =========================
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173",
-		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders: "Content-Type, Authorization",
+		AllowOrigins: []string{"http://localhost:5173"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
 
 	// =========================
 	// Static files
 	// =========================
-	app.Static("/uploads", "../data/uploads")
+	app.Get("/uploads*", static.New("../data/uploads"))
 
 	api := app.Group("/api/")
 	version := api.Group("/v001")

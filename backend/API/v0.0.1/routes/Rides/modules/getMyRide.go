@@ -5,10 +5,10 @@ import (
 	rideManagement "API/internal/ridesmanagement"
 	userModels "API/internal/usermanagement/models"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func getMyRide(c *fiber.Ctx) error {
+func getMyRide(c fiber.Ctx) error {
 	user := c.Locals("user").(userModels.User)
 
 	if user.Role == "uber" {

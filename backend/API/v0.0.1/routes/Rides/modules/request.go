@@ -5,10 +5,10 @@ import (
 	userUseModels "API/internal/usermanagement/models"
 	"API/internal/utils"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func RideRequest(c *fiber.Ctx) error {
+func RideRequest(c fiber.Ctx) error {
 	type Request struct {
 		StartLat float64 `json:"start_lat"`
 		StartLng float64 `json:"start_lng"`
@@ -17,7 +17,7 @@ func RideRequest(c *fiber.Ctx) error {
 	}
 
 	var req Request
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})

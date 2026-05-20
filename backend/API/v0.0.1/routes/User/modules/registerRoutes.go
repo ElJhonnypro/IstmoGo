@@ -4,7 +4,7 @@ import (
 	"API/routes/middlewares"
 	"os"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func RegisterUserRoutes(router fiber.Router) {
