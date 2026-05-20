@@ -57,7 +57,8 @@ func CreateTables(db *sql.DB) {
 		car_id TEXT NULL REFERENCES public.cars(id),
 		email VARCHAR(100) UNIQUE,
 		password VARCHAR(255),
-		location VARCHAR(255),
+		location_lat DOUBLE,
+		location_long DOUBLE,
 		birthdate DATE NOT NULL,
 		created_at TIMESTAMP DEFAULT NOW()
 	);
@@ -67,10 +68,10 @@ func CreateTables(db *sql.DB) {
 	}
 
 	queryRider := `
-	CREATE TABLE IF NOT EXISTS public.rides(
+	CREATE TABLE IF NOT EXISTS public.rides (
 		id TEXT PRIMARY KEY,
-		client_id TEXT NOT NULL REFERENCES users(id),
-		driver_id TEXT REFERENCES users(id),
+		client_id TEXT NOT NULL REFERENCES public.users(id),
+		driver_id TEXT REFERENCES public.users(id),
 		
 
 		start_lat DOUBLE PRECISION NOT NULL,
@@ -83,18 +84,18 @@ func CreateTables(db *sql.DB) {
 
 		status TEXT NOT NULL DEFAULT 'requested',
 
-		created_at TIMESTAMP DEFAULT NOW(),
-		requested_at TIMESTAMP DEFAULT NOW(),
+		created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'America/Panama'),
+		requested_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'America/Panama'),
 		accepted_at TIMESTAMP,
 		started_at TIMESTAMP,
 		finished_at TIMESTAMP
 		
-	)
+	);
 		
 	`
-
-	db.Exec(queryRider)
-
+	if _, err := db.Exec(queryRider); err != nil {
+		log.Fatal("Error creating rides table:", err)
+	}
 }
 
 var DB *sql.DB
@@ -139,8 +140,8 @@ type InsertCarResponse struct {
 func InsertUser(db *sql.DB, user userUseModels.User) InsertUserResponse {
 	// Query to insert user
 	query := `
-	INSERT INTO users (id,name, phone, role, rid, rid_photo, car_id, email, password, location, birthdate)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+	INSERT INTO users (id,name, phone, role, rid, rid_photo, car_id, email, password, location_lat, location_long, birthdate)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
 	`
 	_, err := db.Exec(query,
 		user.ID,
@@ -152,7 +153,8 @@ func InsertUser(db *sql.DB, user userUseModels.User) InsertUserResponse {
 		user.CarID,
 		user.Email,
 		user.Password,
-		user.Location,
+		user.LocationLat,
+		user.LocationLong,
 		user.Birthdate)
 
 	if err != nil {
@@ -180,7 +182,7 @@ func AdmingetUsers(db *sql.DB) ([]userUseModels.User, error) {
 	var users []userUseModels.User
 	for rows.Next() {
 		var user userUseModels.User
-		err := rows.Scan(&user.ID, &user.Name, &user.Phone, &user.Role, &user.RID, &user.RIDPhoto, &user.CarID, &user.Email, &user.Password, &user.Location, &user.Birthdate, &user.CreatedAt)
+		err := rows.Scan(&user.ID, &user.Name, &user.Phone, &user.Role, &user.RID, &user.RIDPhoto, &user.CarID, &user.Email, &user.Password, &user.LocationLat, &user.LocationLong, &user.Birthdate, &user.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -227,7 +229,7 @@ func GetUserByID(db *sql.DB, admin bool, userID string) (userUseModels.User, err
 
 	row := db.QueryRow(query, userID)
 
-	err := row.Scan(&user.ID, &user.Name, &user.Phone, &user.Role, &user.RID, &user.RIDPhoto, &user.CarID, &user.Email, &user.Password, &user.Location, &user.Birthdate, &user.CreatedAt)
+	err := row.Scan(&user.ID, &user.Name, &user.Phone, &user.Role, &user.RID, &user.RIDPhoto, &user.CarID, &user.Email, &user.Password, &user.LocationLat, &user.LocationLong, &user.Birthdate, &user.CreatedAt)
 	return user, err
 
 }
@@ -248,10 +250,13 @@ func VerifyLogIn(db *sql.DB, infoValue string) (userUseModels.User, error) {
 		FROM users
 		WHERE phone = $1;
 		`
-	} else {
-		return user, errors.New("invalid login identifier")
+	} else if utils.IsUserName(user.Name) {
+		query = `
+		SELECT id, password
+		FROM users
+		WHERE name = $1;
+		`
 	}
-
 	err := db.QueryRow(query, infoValue).Scan(
 		&user.ID,
 		&user.Password,
@@ -334,7 +339,7 @@ func InsertRide(db *sql.DB, ride rideModels.Ride) error {
 }
 
 func GetAllRides(db *sql.DB) ([]rideModels.Ride, error) {
-	query := `SELECT id, client_id, driver_id, car_id, start_lat, start_lng, end_lat, end_lng, distance_km, price, status, requested_at, accepted_at, started_at, finished_at FROM rides;`
+	query := `SELECT id, client_id, driver_id, start_lat, start_lng, end_lat, end_lng, distance_km, price, status, requested_at, accepted_at, started_at, finished_at FROM rides;`
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
@@ -370,7 +375,7 @@ func GetAllRides(db *sql.DB) ([]rideModels.Ride, error) {
 
 func GetRideByID(db *sql.DB, rideID string) (rideModels.Ride, error) {
 	var ride rideModels.Ride
-	query := `SELECT id, client_id, driver_id, car_id, start_lat, start_lng, end_lat, end_lng, distance_km, price, status, requested_at, accepted_at, started_at, finished_at FROM rides WHERE id = $1;`
+	query := `SELECT id, client_id, driver_id, start_lat, start_lng, end_lat, end_lng, distance_km, price, status, requested_at, accepted_at, started_at, finished_at FROM rides WHERE id = $1;`
 	row := db.QueryRow(query, rideID)
 	err := row.Scan(
 		&ride.ID,
@@ -389,6 +394,41 @@ func GetRideByID(db *sql.DB, rideID string) (rideModels.Ride, error) {
 		&ride.FinishedAt,
 	)
 	return ride, err
+}
+
+func GetRidesByUber(db *sql.DB, userID string) ([]rideModels.Ride, error) {
+	query := `SELECT id, client_id, driver_id, start_lat, start_lng, end_lat, end_lng, distance_km, price, status, requested_at, accepted_at, started_at, finished_at FROM rides WHERE driver_id = $1 AND status = 'accepted';`
+	rows, err := db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var rides []rideModels.Ride
+	for rows.Next() {
+		var ride rideModels.Ride
+		err := rows.Scan(
+			&ride.ID,
+			&ride.ClientID,
+			&ride.UberID,
+			&ride.StartLat,
+			&ride.StartLng,
+			&ride.EndLat,
+			&ride.EndLng,
+			&ride.DistanceKm,
+			&ride.Price,
+			&ride.Status,
+			&ride.RequestedAt,
+			&ride.AcceptedAt,
+			&ride.StartedAt,
+			&ride.FinishedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		rides = append(rides, ride)
+	}
+	return rides, nil
 }
 
 func UpdateRide(db *sql.DB, ride rideModels.Ride) error {
@@ -430,7 +470,7 @@ func UpdateRide(db *sql.DB, ride rideModels.Ride) error {
 }
 
 func GetActiveRidesByUserID(db *sql.DB, userID string) ([]rideModels.Ride, error) {
-	query := `SELECT id, client_id, driver_id, car_id, start_lat, start_lng, end_lat, end_lng, distance_km, price, status, requested_at, accepted_at, started_at, finished_at FROM rides WHERE (client_id = $1 OR driver_id = $1) AND status IN ('requested', 'accepted', 'started');`
+	query := `SELECT id, client_id, driver_id, start_lat, start_lng, end_lat, end_lng, distance_km, price, status, requested_at, accepted_at, started_at, finished_at FROM rides WHERE (client_id = $1 OR driver_id = $1) AND status IN ('requested', 'accepted', 'started');`
 	rows, err := db.Query(query, userID)
 	if err != nil {
 		return nil, err

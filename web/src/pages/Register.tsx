@@ -5,10 +5,10 @@ export default function Register() {
   const [name,setName] = useState("")
   const [phone,setPhone] = useState("")
   const [email,setEmail] = useState("")
-  const [password,setPassword] = useState("")
+  const [password,setPassword] = useState("123")
   const [location,setLocation] = useState("")
   const [birthdate,setBirthdate] = useState("")
-  const [role,setRole] = useState("user")
+  const [role,setRole] = useState("client")
 
   // uber fields
   const [rid,setRID] = useState("")
@@ -46,8 +46,8 @@ export default function Register() {
       const carData = await carRes.json()
 
       console.log("car response",carData)
-
-      carId = carData.id
+      
+      carId = carData.carId
     }
 
     // =========================
@@ -73,15 +73,16 @@ export default function Register() {
       }
 
       form.append("carId",carId)
+      console.log("carId",carId)
     }
 
-    const res = await fetch("http://localhost:2534/api/v001/register",{
+    const res = await fetch("http://localhost:2534/api/v001/auth/register",{
       method:"POST",
       body:form
     })
 
     const data = await res.json()
-
+    console.log(password)
     console.log("user response",data)
 
   }
@@ -99,7 +100,7 @@ export default function Register() {
       <input type="date" onChange={(e)=>setBirthdate(e.target.value)}/>
 
       <select onChange={(e)=>setRole(e.target.value)}>
-        <option value="user">User</option>
+        <option value="client">User</option>
         <option value="uber">Uber</option>
       </select>
 

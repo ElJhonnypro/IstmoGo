@@ -13,7 +13,7 @@ func FinishRide(c *fiber.Ctx) error {
 	var req Request
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid request body",
+			"error": "Invalid request body, " + req.RideID,
 		})
 	}
 

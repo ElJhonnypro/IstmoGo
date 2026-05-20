@@ -2,14 +2,17 @@ package RideRoutes
 
 import (
 	rideManagement "API/internal/ridesmanagement"
+	userModels "API/internal/usermanagement/models"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func AcceptRide(c *fiber.Ctx) error {
+
+	User := c.Locals("user").(userModels.User)
+
 	type Request struct {
-		RideID   string `json:"ride_id"`
-		DriverID string `json:"driver_id"`
+		RideID string `json:"ride_id"`
 	}
 
 	var req Request
@@ -19,7 +22,7 @@ func AcceptRide(c *fiber.Ctx) error {
 		})
 	}
 
-	acceptedRide, err := rideManagement.AcceptRide(req.RideID, req.DriverID)
+	acceptedRide, err := rideManagement.AcceptRide(req.RideID, User.ID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": err.Error(),

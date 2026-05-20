@@ -55,7 +55,8 @@ func RideRequest(c *fiber.Ctx) error {
 	)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"error": "Failed to create ride",
+			"error":  "Failed to create ride",
+			"detail": err.Error(),
 		})
 	}
 

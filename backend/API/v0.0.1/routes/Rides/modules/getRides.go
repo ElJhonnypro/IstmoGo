@@ -29,6 +29,7 @@ func GetNearRides(c *Fiber.Ctx) error {
 
 	var req Request
 	if err := c.BodyParser(&req); err != nil {
+		println(err.Error())
 		return c.Status(400).JSON(Fiber.Map{
 			"error": "Invalid request body",
 		})

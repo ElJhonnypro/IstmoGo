@@ -4,6 +4,7 @@ import (
 	carManagement "API/internal/carmanagement"
 	userManagement "API/internal/usermanagement"
 	"API/internal/utils"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,15 +16,15 @@ func RegisterUser(c *fiber.Ctx) error {
 	role := c.FormValue("role")
 	email := c.FormValue("email")
 	password := c.FormValue("password")
-	location := c.FormValue("location")
+	locationLat := utils.StringToFloat(c.FormValue("locationLat"))
+	locationLong := utils.StringToFloat(c.FormValue("locationLong"))
 	birthdate := c.FormValue("birthdate") // string
 
 	// not neccesary
 	rid := c.FormValue("rid")
 	carID := c.FormValue("carId")
 
-	// Validación básica
-	if name == "" || phone == "" || role == "" || email == "" || password == "" || location == "" || birthdate == "" {
+	if name == "" || phone == "" || role == "" || email == "" || password == "" || locationLat == 0 || locationLong == 0 || birthdate == "" {
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
 			"message": "Missing required fields",
@@ -37,6 +38,10 @@ func RegisterUser(c *fiber.Ctx) error {
 	if role == "uber" {
 		// Uber OBLIGATORIO
 		if rid == "" || carID == "" {
+
+			println("rid:", rid)
+			println("carID:", carID)
+
 			return c.Status(400).JSON(fiber.Map{
 				"success": false,
 				"message": "Missing required uber fields",
@@ -59,9 +64,9 @@ func RegisterUser(c *fiber.Ctx) error {
 			})
 		}
 		ridPhotoPath = &photoPath
-
+		fmt.Println("carID:", carID)
 		// Validar que el carro exista
-		if !carManagement.ValidIdCar(carID) {
+		if carManagement.ValidIdCar(carID) != true {
 			return c.Status(400).JSON(fiber.Map{
 				"success": false,
 				"message": "Invalid car ID",
@@ -70,14 +75,7 @@ func RegisterUser(c *fiber.Ctx) error {
 
 	}
 
-	// ❌ Prohibir admin
-	if role == "admin" {
-		return c.Status(403).JSON(fiber.Map{
-			"success": false,
-			"message": "Forbidden role",
-		})
-	}
-
+	fmt.Println(role)
 	if role != "client" && role != "uber" {
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
@@ -85,7 +83,6 @@ func RegisterUser(c *fiber.Ctx) error {
 		})
 	}
 
-	// Convertir opcionales a punteros
 	var ridPtr *string = nil
 	if rid != "" {
 		ridPtr = &rid
@@ -99,8 +96,9 @@ func RegisterUser(c *fiber.Ctx) error {
 	var birthdatePtr *string = &birthdate
 
 	// =========================
-	// Registrar usuario
+	// Registering User
 	// =========================
+	fmt.Println(password)
 	result := userManagement.RegisterUser(
 		name,
 		phone,
@@ -110,7 +108,8 @@ func RegisterUser(c *fiber.Ctx) error {
 		carIDPtr,
 		email,
 		password,
-		location,
+		locationLat,
+		locationLong,
 		birthdatePtr,
 	)
 

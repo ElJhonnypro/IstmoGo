@@ -4,6 +4,7 @@ import (
 	"math"
 	"mime/multipart"
 	"os"
+	"strconv"
 	"time"
 	"unicode"
 
@@ -141,4 +142,12 @@ func CalculatePrice(distanceKm float64) float64 {
 func IsWithinRadius(lat1, lon1, lat2, lon2, radiusKm float64) bool {
 	distance := Haversine(lat1, lon1, lat2, lon2)
 	return distance <= radiusKm
+}
+
+func StringToFloat(s string) float64 {
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0
+	}
+	return f
 }

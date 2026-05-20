@@ -20,7 +20,8 @@ func RegisterUser(
 	CarID *string,
 	Email string,
 	Password string,
-	Location string,
+	LocationLat float64,
+	LocationLong float64,
 	Birthdate *string,
 ) data.InsertUserResponse {
 
@@ -40,8 +41,9 @@ func RegisterUser(
 	}
 
 	if !utils.HasSymbol(Password) {
+		fmt.Println(Password)
 		return data.InsertUserResponse{
-			Message: "Password must contain at least one symbol",
+			Message: "Password must contain at lea st one symbol",
 			Success: false,
 		}
 	}
@@ -62,17 +64,18 @@ func RegisterUser(
 	RIDPhoto = utils.EmptyToNil(RIDPhoto)
 
 	user := userUseModels.User{
-		ID:        uuid.New().String(),
-		Name:      Name,
-		Phone:     Phone,
-		Role:      Role,
-		RID:       RID,
-		RIDPhoto:  RIDPhoto,
-		CarID:     CarID,
-		Email:     Email,
-		Password:  string(hashedPassword),
-		Location:  Location,
-		Birthdate: Birthdate,
+		ID:           uuid.New().String(),
+		Name:         Name,
+		Phone:        Phone,
+		Role:         Role,
+		RID:          RID,
+		RIDPhoto:     RIDPhoto,
+		CarID:        CarID,
+		Email:        Email,
+		Password:     string(hashedPassword),
+		LocationLat:  float64(LocationLat),
+		LocationLong: float64(LocationLong),
+		Birthdate:    Birthdate,
 	}
 
 	return data.InsertUser(data.GetDB(), user)
